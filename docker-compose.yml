@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo:5.0.3
+    ports:
+      - "27017:27017"
+    restart: always
+    container_name: 'java-mongo'
+    environment:
+      MONGO_DB: sukagram
+#      MONGO_INITDB_ROOT_USERNAME: admin
+#      MONGO_INITDB_ROOT_PASSWORD: admin
+
+
+  app:
+    build: ./
+    container_name: 'java-tainogram'
+    ports:
+      - "8080:8080"
