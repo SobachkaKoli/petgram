@@ -6,10 +6,11 @@ import com.example.petgram.model.FriendShip;
 import com.example.petgram.model.User;
 import com.example.petgram.repository.FriendShipRepository;
 import com.example.petgram.repository.UserRepository;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.FriendShipService;
 import com.example.petgram.service.NotificationService;
 import com.example.petgram.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 public class FriendShipServiceImpl implements FriendShipService{
     private final FriendShipRepository friendShipRepository;
     private final UserService userService;
@@ -32,57 +34,59 @@ public class FriendShipServiceImpl implements FriendShipService{
         this.notificationService = notificationService;
     }
     @Override
-    public void countFollowersAndFollowing(String followingUserName, JwtUser jwtUser) throws Status430UserNotFoundException, Status444UserIsNull {
-        if (!userRepository.existsByUserName(followingUserName)){
+    public void countFollowersAndFollowing(String followingUserName, UserPrincipal userPrincipal) throws Status430UserNotFoundException, Status444UserIsNull {
+        if (!userRepository.existsByUsername(followingUserName)){
             throw new Status430UserNotFoundException(followingUserName);
         }else{
-                User follower = userService.getAuthenticatedUser(jwtUser);
+                User follower = userService.getAuthenticatedUser(userPrincipal);
+                log.info("Follower {}", follower);
                 follower.setFollowing(friendShipRepository.countAllByFollower(follower));
                 userRepository.save(follower);
 
-               User following = userService.getByUserName(followingUserName);
+                User following = userService.getByUsername(followingUserName);
+                log.info("Following {}", following);
                 following.setFollowers(friendShipRepository.countAllByFollowing(following));
                 userRepository.save(following);
         }
     }
 
     @Override
-    public void followUp(String followingUsername, JwtUser jwtUser) throws Status430UserNotFoundException, Status432SelfFollowingException, Status433FriendShipAlreadyExistsException, Status444UserIsNull {
+    public void followUp(String followingUsername, UserPrincipal userPrincipal) throws Status430UserNotFoundException, Status432SelfFollowingException, Status433FriendShipAlreadyExistsException, Status444UserIsNull {
 
         if (friendShipRepository.existsByFollowerAndFollowing(
-                userService.getAuthenticatedUser(jwtUser),userService.getByUserName(followingUsername))){
+                userService.getAuthenticatedUser(userPrincipal),userService.getByUsername(followingUsername))){
             throw new Status433FriendShipAlreadyExistsException(followingUsername);
         }else {
             if(!userService.existsByUsername(followingUsername)){
                 throw new Status430UserNotFoundException(followingUsername);
-            }else if(userService.getAuthenticatedUser(jwtUser).getId().equals(followingUsername)){
+            }else if(userService.getAuthenticatedUser(userPrincipal).getId().equals(followingUsername)){
                 throw new Status432SelfFollowingException("You can not follow up yourself");
             }else {
                 FriendShip friendShip = FriendShip
                         .builder()
-                        .following(userService.getByUserName(followingUsername))
-                        .follower(userService.getAuthenticatedUser(jwtUser))
+                        .following(userService.getByUsername(followingUsername))
+                        .follower(userService.getAuthenticatedUser(userPrincipal))
                         .build();
                 friendShipRepository.save(friendShip);
-                countFollowersAndFollowing(followingUsername,jwtUser);
+                countFollowersAndFollowing(followingUsername, userPrincipal);
                 notificationService.sendNotification(
-                        jwtUser,followingUsername,userService.getByUserName(followingUsername).getUserName() + " now following you",userService.getAuthenticatedUser(jwtUser).getId(), ContentType.FOLLOWER);
+                        userPrincipal,followingUsername,userService.getByUsername(followingUsername).getUsername() + " now following you",userService.getAuthenticatedUser(userPrincipal).getId(), ContentType.FOLLOWER);
             }
         }
     }
     @Override
-    public void unFollow(String followingUsername, JwtUser jwtUser) throws Status442FriendShipDoesntExistsException, Status430UserNotFoundException, Status444UserIsNull {
-        if (!userRepository.existsByUserName(followingUsername)) {
+    public void unFollow(String followingUsername, UserPrincipal userPrincipal) throws Status442FriendShipDoesntExistsException, Status430UserNotFoundException, Status444UserIsNull {
+        if (!userRepository.existsByUsername(followingUsername)) {
             throw new Status430UserNotFoundException(followingUsername);
         } else {
-            if (!friendShipRepository.existsByFollowerAndFollowing(userService.getAuthenticatedUser(jwtUser),
-                    userService.getByUserName(followingUsername)
+            if (!friendShipRepository.existsByFollowerAndFollowing(userService.getAuthenticatedUser(userPrincipal),
+                    userService.getByUsername(followingUsername)
             )) {
-                throw new Status442FriendShipDoesntExistsException(userService.getByUserName(followingUsername).getUserName());
+                throw new Status442FriendShipDoesntExistsException(userService.getByUsername(followingUsername).getUsername());
             } else {
-                friendShipRepository.deleteFriendShipByFollowerAndFollowing(userService.getAuthenticatedUser(jwtUser),
-                        userService.getByUserName(followingUsername));
-                countFollowersAndFollowing(followingUsername, jwtUser);
+                friendShipRepository.deleteFriendShipByFollowerAndFollowing(userService.getAuthenticatedUser(userPrincipal),
+                        userService.getByUsername(followingUsername));
+                countFollowersAndFollowing(followingUsername, userPrincipal);
             }
         }
     }
@@ -92,9 +96,9 @@ public class FriendShipServiceImpl implements FriendShipService{
         if(!userService.existsByUsername(username)){
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUserName(username);
+            User user = userService.getByUsername(username);
             if (!friendShipRepository.existsByFollowing(user)) {
-                throw new Status442FriendShipDoesntExistsException(user.getUserName());
+                throw new Status442FriendShipDoesntExistsException(user.getUsername());
             }else {
 
                 List<User> followers = new ArrayList<>();
@@ -114,9 +118,9 @@ public class FriendShipServiceImpl implements FriendShipService{
         if (!userService.existsByUsername(username)){
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUserName(username);
+            User user = userService.getByUsername(username);
             if(!friendShipRepository.existsByFollower(user)){
-                throw new Status442FriendShipDoesntExistsException(user.getUserName());
+                throw new Status442FriendShipDoesntExistsException(user.getUsername());
             }
             List<User> following = new ArrayList<>();
             friendShipRepository.findAllByFollower(user).forEach(friendShip -> following.add(friendShip.getFollowing()));
@@ -124,12 +128,12 @@ public class FriendShipServiceImpl implements FriendShipService{
         }
     }
     @Override
-    public void deleteFollower(String followingUsername, JwtUser jwtUser) throws Status430UserNotFoundException, Status444UserIsNull {
+    public void deleteFollower(String followingUsername, UserPrincipal userPrincipal) throws Status430UserNotFoundException, Status444UserIsNull {
         if (friendShipRepository.existsByFollowerAndFollowing(
-                userService.getByUserName(followingUsername),userService.getAuthenticatedUser(jwtUser))){
+                userService.getByUsername(followingUsername),userService.getAuthenticatedUser(userPrincipal))){
             friendShipRepository.deleteFriendShipByFollowerAndFollowing(
-                    userService.getByUserName(followingUsername),userService.getAuthenticatedUser(jwtUser));
-           countFollowersAndFollowing(followingUsername,jwtUser);
+                    userService.getByUsername(followingUsername),userService.getAuthenticatedUser(userPrincipal));
+           countFollowersAndFollowing(followingUsername, userPrincipal);
         }else {
             throw new Status430UserNotFoundException(followingUsername);
         }

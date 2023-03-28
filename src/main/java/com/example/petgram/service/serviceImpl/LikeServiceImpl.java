@@ -6,7 +6,7 @@ import com.example.petgram.model.ContentType;
 import com.example.petgram.model.Like;
 import com.example.petgram.model.Post;
 import com.example.petgram.repository.LikeRepository;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.*;
 import org.springframework.stereotype.Service;
 
@@ -28,22 +28,22 @@ public class LikeServiceImpl implements LikeService {
 
 
     @Override
-    public void likePost(String postId, JwtUser jwtUser) throws Status444UserIsNull, Status440PostNotFoundException, Status437LikeAlreadyExistsException {
+    public void likePost(String postId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status440PostNotFoundException, Status437LikeAlreadyExistsException, Status430UserNotFoundException {
         if (!postService.existsById(postId)) {
             throw new Status440PostNotFoundException(postId);
         }else {
-            if (likeRepository.existsByDocumentIdAndAuthor(postId, userService.getAuthenticatedUser(jwtUser))) {
+            if (likeRepository.existsByDocumentIdAndAuthor(postId, userService.getAuthenticatedUser(userPrincipal))) {
                 throw new Status437LikeAlreadyExistsException("you already liked post with id: " + postId);
             } else {
                 Post post = postService.getById(postId);
                 likeRepository.save(Like.builder()
-                    .author(userService.getAuthenticatedUser(jwtUser))
+                    .author(userService.getAuthenticatedUser(userPrincipal))
                     .contentType(ContentType.POST)
                     .documentId(postId)
                     .build());
-                notificationService.sendNotification(jwtUser,
-                        postService.getById(postId).getAuthor().getUserName(),
-                        "New like to the post from " + userService.getAuthenticatedUser(jwtUser).getUserName(),postId,ContentType.POST);
+                notificationService.sendNotification(userPrincipal,
+                        postService.getById(postId).getAuthor().getUsername(),
+                        "New like to the post from " + userService.getAuthenticatedUser(userPrincipal).getUsername(),postId,ContentType.POST);
 
                 post.setCountLikes(likeRepository.countLikeByDocumentId(postId));
                 postService.save(post);
@@ -52,12 +52,12 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public void unLikePost(String postId, JwtUser jwtUser) throws Status444UserIsNull, Status440PostNotFoundException, Status438LikeNotFoundException {
+    public void unLikePost(String postId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status440PostNotFoundException, Status438LikeNotFoundException, Status430UserNotFoundException {
         if (!postService.existsById(postId)) {
             throw new Status440PostNotFoundException(postId);
         } else {
-            if (likeRepository.existsByDocumentIdAndAuthor(postId, userService.getAuthenticatedUser(jwtUser))) {
-                likeRepository.deleteLikeByDocumentIdAndAuthor(postId, userService.getAuthenticatedUser(jwtUser));
+            if (likeRepository.existsByDocumentIdAndAuthor(postId, userService.getAuthenticatedUser(userPrincipal))) {
+                likeRepository.deleteLikeByDocumentIdAndAuthor(postId, userService.getAuthenticatedUser(userPrincipal));
                 Post post = postService.getById(postId);
                 post.setCountLikes(likeRepository.countLikeByDocumentId(postId));
                 postService.save(post);
@@ -68,22 +68,22 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public void likeComment(String commentId, JwtUser jwtUser) throws Status444UserIsNull, Status440PostNotFoundException, Status437LikeAlreadyExistsException, Status439CommentNotFoundException {
+    public void likeComment(String commentId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status440PostNotFoundException, Status437LikeAlreadyExistsException, Status439CommentNotFoundException, Status430UserNotFoundException {
         if (!commentService.existsById(commentId)) {
             throw new Status439CommentNotFoundException(commentId);
         }else {
-            if (likeRepository.existsByDocumentIdAndAuthor(commentId, userService.getAuthenticatedUser(jwtUser))) {
+            if (likeRepository.existsByDocumentIdAndAuthor(commentId, userService.getAuthenticatedUser(userPrincipal))) {
                 throw new Status437LikeAlreadyExistsException("you already liked comment with id: " + commentId);
             } else {
                 Comment comment = commentService.getById(commentId);
                 likeRepository.save(Like.builder()
-                        .author(userService.getAuthenticatedUser(jwtUser))
+                        .author(userService.getAuthenticatedUser(userPrincipal))
                         .contentType(ContentType.COMMENT)
                         .documentId(commentId)
                         .build());
-                notificationService.sendNotification(jwtUser,
-                        postService.getById(commentId).getAuthor().getUserName(),
-                        "New like to the comment from " + userService.getAuthenticatedUser(jwtUser).getUserName(),commentId,ContentType.COMMENT);
+                notificationService.sendNotification(userPrincipal,
+                        postService.getById(commentId).getAuthor().getUsername(),
+                        "New like to the comment from " + userService.getAuthenticatedUser(userPrincipal).getUsername(),commentId,ContentType.COMMENT);
                 comment.setCountLikes(likeRepository.countLikeByDocumentId(commentId));
                 commentService.save(comment);
             }
@@ -91,12 +91,12 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public void unLikeComment(String commentId, JwtUser jwtUser) throws Status444UserIsNull,Status439CommentNotFoundException, Status438LikeNotFoundException {
+    public void unLikeComment(String commentId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status439CommentNotFoundException, Status438LikeNotFoundException, Status430UserNotFoundException {
         if (!commentService.existsById(commentId)) {
             throw new Status439CommentNotFoundException(commentId);
         } else {
-            if (likeRepository.existsByDocumentIdAndAuthor(commentId, userService.getAuthenticatedUser(jwtUser))) {
-                likeRepository.deleteLikeByDocumentIdAndAuthor(commentId, userService.getAuthenticatedUser(jwtUser));
+            if (likeRepository.existsByDocumentIdAndAuthor(commentId, userService.getAuthenticatedUser(userPrincipal))) {
+                likeRepository.deleteLikeByDocumentIdAndAuthor(commentId, userService.getAuthenticatedUser(userPrincipal));
                 Comment comment = commentService.getById(commentId);
                 comment.setCountLikes(likeRepository.countLikeByDocumentId(commentId));
                 commentService.save(comment);

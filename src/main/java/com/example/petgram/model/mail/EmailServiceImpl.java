@@ -1,4 +1,4 @@
-package com.example.petgram.mail;
+package com.example.petgram.model.mail;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

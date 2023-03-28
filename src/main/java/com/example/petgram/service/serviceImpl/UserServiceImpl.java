@@ -4,16 +4,17 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.petgram.DTO.UserDTO;
+import com.example.petgram.DTO.UserDto;
+import com.example.petgram.Exception.Status430UserNotFoundException;
 import com.example.petgram.Exception.Status434UserNicknameNotUniqueException;
 import com.example.petgram.Exception.Status444UserIsNull;
-import com.example.petgram.mail.EmailServiceImpl;
+import com.example.petgram.model.mail.EmailServiceImpl;
 import com.example.petgram.model.Role;
 import com.example.petgram.model.User;
 import com.example.petgram.notifications.Notification;
 import com.example.petgram.repository.NotificationRepository;
 import com.example.petgram.repository.UserRepository;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,55 +56,57 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User registerUser(UserDTO userDTO) throws Status434UserNicknameNotUniqueException {
-        if (userRepository.existsByUserName(userDTO.getUserName())) {
+    public User registerUser(UserDto userDTO) throws Status434UserNicknameNotUniqueException {
+        if (userRepository.existsByUsername(userDTO.getUsername())) {
             throw new Status434UserNicknameNotUniqueException();
         }
 
         User user = User.builder()
                 .email(userDTO.getEmail())
-                .userName(userDTO.getUserName())
+                .username(userDTO.getUsername())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
                 .role(Role.USER)
                 .build();
 
-        File userDir = new File(uploadPath + "/" + user.getUserName());
+        File userDir = new File(uploadPath + "/" + user.getUsername());
         userDir.mkdir();
         log.info("User dir {}", userDir.getPath());
 
-        File userAvatarsDir = new File(uploadPath + "/" + user.getUserName() + "/avatars");
+        File userAvatarsDir = new File(uploadPath + "/" + user.getUsername() + "/avatars");
         userAvatarsDir.mkdir();
         log.info("User avatars dir {}", userAvatarsDir.getPath());
 
-        File userPostsDir = new File(uploadPath + "/" + user.getUserName() + "/posts");
+        File userPostsDir = new File(uploadPath + "/" + user.getUsername() + "/posts");
         userPostsDir.mkdir();
         log.info("User posts dir {}", userPostsDir.getPath());
 
-        log.info("Saving new user {} to the database", user.getUserName());
-        emailService.sendSimpleMessage(userDTO.getEmail(), "OK", "Test");
+        log.info("Saving new user {} to the database", user.getUsername());
+//        emailService.sendSimpleMessage(userDTO.getEmail(), "OK", "Test");
+        log.info("user {}", user);
 
         return userRepository.save(user);
+
     }
 
     @Override
-    public User getByUserName(String username) throws Status444UserIsNull {
-        return userRepository.findByUserName(username).orElseThrow(() -> new Status444UserIsNull(username + " Not found"));
+    public User getByUsername(String username) throws Status444UserIsNull {
+        return userRepository.findByUsername(username).orElseThrow(() -> new Status444UserIsNull(username + " Not found"));
     }
 
 
     @Override
-    public User getAuthenticatedUser(JwtUser jwtUser) throws Status444UserIsNull {
-        return jwtUser.getUser();
+    public User getAuthenticatedUser(UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
+        return userRepository.findById(userPrincipal.getId()).orElseThrow(() -> new Status430UserNotFoundException(userPrincipal.getId()));
     }
 
     @Override
-    public User deleteMyAccount(JwtUser jwtUser) throws Exception {
+    public User deleteMyAccount(UserPrincipal userPrincipal) throws Exception {
 
-        User user = getAuthenticatedUser(jwtUser);
+        User user = getAuthenticatedUser(userPrincipal);
 
         File avatar = new File(user.getAvatar());
         avatar.delete();
-        user.setUserName("DELETED");
+        user.setUsername("DELETED");
         user.setAvatar("");
         user.setEmail("");
         user.setRole(Role.DELETED);
@@ -114,17 +117,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Notification> getMyNotifications(JwtUser jwtUser) throws Status444UserIsNull {
-        return notificationRepository.findAllByRecipient(getAuthenticatedUser(jwtUser));
+    public List<Notification> getMyNotifications(UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
+        return notificationRepository.findAllByRecipient(getAuthenticatedUser(userPrincipal));
     }
 
-    public String trimToken(String token) {
-        return token.substring(7);
-    }
+
 
     @Override
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    public Optional<User> findById(String id) {
+        return userRepository.findById(id);
     }
 
     @Override
@@ -143,9 +149,9 @@ public class UserServiceImpl implements UserService {
                 JWTVerifier verifier = JWT.require(algorithm).build();
                 DecodedJWT decodedJWT = verifier.verify(refresh_token);
                 String username = decodedJWT.getSubject();
-                User user = getByUserName(username);
+                User user = getByUsername(username);
                 String access_token = JWT.create()
-                        .withSubject(user.getUserName())
+                        .withSubject(user.getUsername())
                         .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
                         .withIssuer(request.getRequestURL().toString())
 //                        .withClaim("roles",user.get().getRoles().stream().map(Role::getName).collect(Collectors.toList()))
@@ -174,7 +180,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean existsByUsername(String username) {
-        return userRepository.existsByUserName(username);
+        return userRepository.existsByUsername(username);
     }
 
     @Override

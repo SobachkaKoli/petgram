@@ -15,9 +15,6 @@ public interface FriendShipRepository extends MongoRepository<FriendShip,String>
 
     boolean existsByFollowing(User following);
 
-
-
-    boolean existsByFollowingId(String followingId);
     boolean existsByFollower(User follower);
     void    deleteFriendShipByFollowerAndFollowing(User follower, User following);
 

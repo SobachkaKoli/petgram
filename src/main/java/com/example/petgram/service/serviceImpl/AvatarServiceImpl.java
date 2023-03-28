@@ -1,15 +1,15 @@
 package com.example.petgram.service.serviceImpl;
 
 
+import com.example.petgram.Exception.Status430UserNotFoundException;
 import com.example.petgram.Exception.Status443FileIsNullException;
 import com.example.petgram.Exception.Status444UserIsNull;
 import com.example.petgram.model.User;
 import com.example.petgram.repository.UserRepository;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.AvatarService;
 import com.example.petgram.service.PictureService;
 import com.example.petgram.service.UserService;
-import jdk.jfr.Label;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,11 +35,11 @@ public class AvatarServiceImpl implements AvatarService {
     }
 
     @Override
-    public String setAvatar(MultipartFile file, JwtUser jwtUser) throws IOException, Status443FileIsNullException, Status444UserIsNull {
+    public String setAvatar(MultipartFile file, UserPrincipal userPrincipal) throws IOException, Status443FileIsNullException, Status444UserIsNull, Status430UserNotFoundException {
 
-        String picturePath = pictureService.savePicture(file,pictureService.createAvatarPath(jwtUser));
+        String picturePath = pictureService.savePicture(file,pictureService.createAvatarPath(userPrincipal));
         log.info("Picture path {} :", picturePath);
-        User user = userRepository.findByUserName(userService.getAuthenticatedUser(jwtUser).getUserName()).orElseThrow();
+        User user = userRepository.findByUsername(userService.getAuthenticatedUser(userPrincipal).getUsername()).orElseThrow();
         log.info("User {} is found", user);
         user.setAvatar(picturePath);
         userService.save(user);

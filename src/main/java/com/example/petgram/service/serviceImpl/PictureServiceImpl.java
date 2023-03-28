@@ -1,9 +1,10 @@
 package com.example.petgram.service.serviceImpl;
 
 
+import com.example.petgram.Exception.Status430UserNotFoundException;
 import com.example.petgram.Exception.Status443FileIsNullException;
 import com.example.petgram.Exception.Status444UserIsNull;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.PictureService;
 import com.example.petgram.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,14 +42,14 @@ public class PictureServiceImpl implements PictureService {
     }
 
     @Override
-    public String createPostPicturePath(JwtUser jwtUser) throws Status444UserIsNull {
-        return uploadPath + "/" + jwtUser.getUsername()
+    public String createPostPicturePath(UserPrincipal userPrincipal) throws Status444UserIsNull {
+        return uploadPath + "/" + userPrincipal.getUsername()
                 + "/posts/";
     }
 
     @Override
-    public String createAvatarPath(JwtUser jwtUser) throws Status444UserIsNull {
-         return uploadPath + "/" + userService.getAuthenticatedUser(jwtUser).getUserName()
+    public String createAvatarPath(UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
+         return uploadPath + "/" + userService.getAuthenticatedUser(userPrincipal).getUsername()
                 + "/avatars/";
     }
 

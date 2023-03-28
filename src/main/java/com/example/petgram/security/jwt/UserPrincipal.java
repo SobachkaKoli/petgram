@@ -1,39 +1,54 @@
-package com.example.petgram.security;
+package com.example.petgram.security.jwt;
 
+import com.example.petgram.model.AuthProvider;
+import com.example.petgram.model.Role;
 import com.example.petgram.model.User;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
-public class JwtUser implements UserDetails {
-    private final User user;
-    public JwtUser(User user){
-        this.user = user;
-    }
+@Slf4j
+@Data
+@RequiredArgsConstructor
+public class UserPrincipal implements UserDetails{
+    private final String id;
+    private final String email;
+    private final String username;
+    private final String password;
+    private final Role role;
+    private final AuthProvider provider;
+    private final Collection<? extends GrantedAuthority> authorities;
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(user.getRole());
+        log.info("Authorities");
+        log.info(String.valueOf(getRole()));
+        return List.of(getRole());
     }
 
 //          user.get().getRoles().forEach(role -> listRoles.add(role.name()));
 //        grantedAuthorityList = listRoles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
-    public String  getId(){ return user.getId();}
+    public String  getId(){ return id;}
 
-    public User getUser(){
-        return this.user;
-    }
+
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return user.getUserName();
+        return username;
     }
 
     @Override

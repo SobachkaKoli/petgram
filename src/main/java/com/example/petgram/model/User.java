@@ -17,10 +17,12 @@ public class User {
     @Id
     private String id;
     private String email;
-    private String userName;
+    private String username;
     private String password;
     private String avatar;
     private Role role;
     private int following;
     private int followers;
+    private AuthProvider provider;
+    private String providerId;
 }

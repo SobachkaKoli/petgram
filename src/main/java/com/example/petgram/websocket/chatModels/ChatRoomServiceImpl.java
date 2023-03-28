@@ -1,9 +1,9 @@
 package com.example.petgram.websocket.chatModels;
 
+import com.example.petgram.Exception.Status430UserNotFoundException;
 import com.example.petgram.Exception.Status444UserIsNull;
-import com.example.petgram.Exception.Status446ChatRoomAlreadyExsists;
 import com.example.petgram.model.User;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,12 +18,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final UserService userService;
 
 
-    private void saveChatRoom(Long chatId, JwtUser jwtUser, List<String> usernames) throws Status444UserIsNull {
+    private void saveChatRoom(Long chatId, UserPrincipal userPrincipal, List<String> usernames) throws Status444UserIsNull, Status430UserNotFoundException {
 
         ArrayList<User> members = new ArrayList<>();
-        members.add(userService.getAuthenticatedUser(jwtUser));
+        members.add(userService.getAuthenticatedUser(userPrincipal));
         for (String username : usernames) {
-            members.add(userService.getByUserName(username));
+            members.add(userService.getByUsername(username));
         }
 
         for (User user : members) {
@@ -41,7 +41,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override
-    public Long createChatRoom(JwtUser jwtUser, List<String> usernames) throws Status444UserIsNull{
+    public Long createChatRoom(UserPrincipal userPrincipal, List<String> usernames) throws Status444UserIsNull, Status430UserNotFoundException {
 
         if (chatRoomRepository.findTopByOrderByChatIdDesc().isPresent()) {
 //            if (chatRoomRepository.existsBySenderAndRecipient(userService.getAuthenticatedUser(token), userService.getByUserName(usernames))) {
@@ -49,13 +49,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 //                throw new Status446ChatRoomAlreadyExsists("chatRoomAlreadyExists");
 //            }else {
             Long chatId = chatRoomRepository.findTopByOrderByChatIdDesc().get().getChatId() + 1L;
-            saveChatRoom(chatId, jwtUser, usernames);
+            saveChatRoom(chatId, userPrincipal, usernames);
             System.out.println(chatId);
             return chatId;
 //            }
         } else {
             Long chatId = 0L;
-            saveChatRoom(chatId, jwtUser, usernames);
+            saveChatRoom(chatId, userPrincipal, usernames);
             return chatId;
         }
 

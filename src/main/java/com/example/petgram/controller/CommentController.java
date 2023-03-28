@@ -1,7 +1,7 @@
 package com.example.petgram.controller;
 
 import com.example.petgram.Exception.*;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.CommentService;
 import com.example.petgram.service.LikeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +20,18 @@ public class CommentController {
     }
 
     @DeleteMapping("/comment/delete/{commentId}")
-    public void deleteComment(@PathVariable String commentId, JwtUser jwtUser) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull {
-        commentService.deleteComment(commentId, jwtUser);
+    public void deleteComment(@PathVariable String commentId, UserPrincipal userPrincipal) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
+        commentService.deleteComment(commentId, userPrincipal);
     }
     
     @PostMapping("/comment/set-like/{commentId}")
-    public void setLikeToComment(@PathVariable String commentId, JwtUser jwtUser) throws Status437LikeAlreadyExistsException, Status439CommentNotFoundException, Status444UserIsNull, Status440PostNotFoundException {
-        likeService.likeComment(commentId,jwtUser);
+    public void setLikeToComment(@PathVariable String commentId, UserPrincipal userPrincipal) throws Status437LikeAlreadyExistsException, Status439CommentNotFoundException, Status444UserIsNull, Status440PostNotFoundException, Status430UserNotFoundException {
+        likeService.likeComment(commentId, userPrincipal);
     }
 
     @DeleteMapping("/comment/unset-like/{commentId}")
-    public void unsetLikeToComment(@PathVariable String commentId, JwtUser jwtUser) throws Status438LikeNotFoundException, Status439CommentNotFoundException, Status444UserIsNull, Status440PostNotFoundException {
-        likeService.unLikeComment(commentId,jwtUser);
+    public void unsetLikeToComment(@PathVariable String commentId, UserPrincipal userPrincipal) throws Status438LikeNotFoundException, Status439CommentNotFoundException, Status444UserIsNull, Status440PostNotFoundException, Status430UserNotFoundException {
+        likeService.unLikeComment(commentId, userPrincipal);
     }
 
 }

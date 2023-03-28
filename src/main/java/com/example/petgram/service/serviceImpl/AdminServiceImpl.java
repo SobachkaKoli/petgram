@@ -34,7 +34,7 @@ public class AdminServiceImpl implements AdminService {
             log.info("User {} not found", username);
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUserName(username);
+            User user = userService.getByUsername(username);
             user.setRole(Role.BANNED_USER);
             log.info("User {} was baned", username);
            return userRepository.save(user);
@@ -47,7 +47,7 @@ public class AdminServiceImpl implements AdminService {
             log.info("User {} not found", username);
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUserName(username);
+            User user = userService.getByUsername(username);
             user.setRole(Role.USER);
             log.info("User {} was unbanned", username);
             return userService.save(user);

@@ -1,18 +1,14 @@
 package com.example.petgram.service.serviceImpl;
 
 import com.example.petgram.DTO.CommentDTO;
-import com.example.petgram.Exception.Status436UserNotCommentAuthorException;
-import com.example.petgram.Exception.Status439CommentNotFoundException;
-import com.example.petgram.Exception.Status440PostNotFoundException;
-import com.example.petgram.Exception.Status444UserIsNull;
+import com.example.petgram.Exception.*;
 import com.example.petgram.model.ContentType;
 import com.example.petgram.model.Role;
 import com.example.petgram.model.Comment;
 import com.example.petgram.model.Post;
 import com.example.petgram.repository.CommentRepository;
 import com.example.petgram.repository.PostRepository;
-import com.example.petgram.security.JwtControllerAdvice;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.CommentService;
 import com.example.petgram.service.NotificationService;
 import com.example.petgram.service.UserService;
@@ -37,7 +33,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment addComment(CommentDTO commentDTO, String postId, JwtUser jwtUser) throws Status440PostNotFoundException, Status444UserIsNull {
+    public Comment addComment(CommentDTO commentDTO, String postId, UserPrincipal userPrincipal) throws Status440PostNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         if(postRepository.existsById(postId)) {
             Post post = postRepository.findById(postId).orElseThrow(()-> new Status440PostNotFoundException(postId));
 
@@ -45,7 +41,7 @@ public class CommentServiceImpl implements CommentService {
 
             Comment comment = Comment.builder()
                     .text(commentDTO.getText())
-                    .author(userService.getAuthenticatedUser(jwtUser))
+                    .author(userService.getAuthenticatedUser(userPrincipal))
                     .contentType(ContentType.COMMENT)
                     .post(post)
                     .build();
@@ -55,9 +51,9 @@ public class CommentServiceImpl implements CommentService {
 
             log.info("Comment {} added", comment);
 
-            notificationService.sendNotification(jwtUser,
-                    post.getAuthor().getUserName(),
-                    "New comment to the post from " + userService.getAuthenticatedUser(jwtUser).getUserName(),postId,ContentType.COMMENT);
+            notificationService.sendNotification(userPrincipal,
+                    post.getAuthor().getUsername(),
+                    "New comment to the post from " + userService.getAuthenticatedUser(userPrincipal).getUsername(),postId,ContentType.COMMENT);
             post.setCountComment(post.getCountComment() + 1);
             log.info("Notification  sent to {} ",post.getAuthor());
             postRepository.save(post);
@@ -69,11 +65,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void deleteComment(String commentId, JwtUser jwtUser) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull {
+    public void deleteComment(String commentId, UserPrincipal userPrincipal) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         if (commentRepository.existsById(commentId)) {
             log.info("comment with id {} exists", commentId);
-            if (userIsCommentAuthor(commentId,jwtUser) | userService.getAuthenticatedUser(jwtUser).getRole().equals(Role.ADMIN)) {
-                log.info("comment is author {} of comment",jwtUser.getUser());
+            if (userIsCommentAuthor(commentId, userPrincipal) | userService.getAuthenticatedUser(userPrincipal).getRole().equals(Role.ADMIN)) {
+                log.info("comment is author {} of comment", userPrincipal.getUsername());
                 commentRepository.deleteById(commentId);
             } else {
                 throw new Status436UserNotCommentAuthorException(commentId);
@@ -84,9 +80,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public boolean userIsCommentAuthor(String commentId, JwtUser jwtUser) throws Status444UserIsNull {
-        String userId = userService.getAuthenticatedUser(jwtUser).getId();
+    public boolean userIsCommentAuthor(String commentId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
+        String userId = userService.getAuthenticatedUser(userPrincipal).getId();
+        log.info("User id {} ", userId);
         String authorId = commentRepository.findById(commentId).get().getAuthor().getId();
+        log.info("Author id {}", authorId);
         return authorId.equals(userId);
     }
 
@@ -103,7 +101,7 @@ public class CommentServiceImpl implements CommentService {
 //    @Override
 //    public List<Comment> getPostComments(String postId) {
 //        return commentRepository.getCommentsByPostId(postId);
-//    }
+//    }j1
 
     @Override
     public void deleteAllByPostId(String postId) {

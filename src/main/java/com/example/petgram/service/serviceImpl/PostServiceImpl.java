@@ -6,7 +6,7 @@ import com.example.petgram.model.*;
 import com.example.petgram.repository.LikeRepository;
 import com.example.petgram.repository.PostRepository;
 import com.example.petgram.repository.SponsorPostRepository;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,18 +41,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Post createPost(PostDTO postDTO, JwtUser jwtUser) throws IOException, Status443FileIsNullException, Status444UserIsNull {
+    public Post createPost(PostDTO postDTO, UserPrincipal userPrincipal) throws IOException, Status443FileIsNullException, Status444UserIsNull, Status430UserNotFoundException {
 
         List<String> picturePath = new ArrayList<>();
         for (MultipartFile file : postDTO.getPictures()){
                 picturePath.add(pictureService.savePicture(
-                        file,pictureService.createPostPicturePath(jwtUser)));
+                        file,pictureService.createPostPicturePath(userPrincipal)));
         }
 
 
-        //userService.getAuthenticatedUser(jwtUser) -> jwtuser
+
         return postRepository.save(Post.builder()
-                .author(jwtUser.getUser())
+                .author(userService.getAuthenticatedUser(userPrincipal))
                 .text(postDTO.getText())
                 .picturePath(picturePath)
                 .contentType(ContentType.POST)
@@ -61,11 +61,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public SponsorPost createSponsorPost(PostDTO postDTO,String sponsorUsername, JwtUser jwtUser) throws IOException, Status443FileIsNullException, Status430UserNotFoundException, Status444UserIsNull {
+    public SponsorPost createSponsorPost(PostDTO postDTO, String sponsorUsername, UserPrincipal userPrincipal) throws IOException, Status443FileIsNullException, Status430UserNotFoundException, Status444UserIsNull {
         if (userService.existsByUsername(sponsorUsername)){
             return sponsorPostRepository.save(SponsorPost.builder()
-                    .post(createPost(postDTO,jwtUser))
-                    .sponsor(userService.getByUserName(sponsorUsername))
+                    .post(createPost(postDTO, userPrincipal))
+                    .sponsor(userService.getByUsername(sponsorUsername))
                     .build());
         }else {
             throw new Status430UserNotFoundException(sponsorUsername);
@@ -78,9 +78,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deleteById(String postId, JwtUser jwtUser) throws Status435UserNotPostAuthorException, Status440PostNotFoundException, Status444UserIsNull {
+    public void deleteById(String postId, UserPrincipal userPrincipal) throws Status435UserNotPostAuthorException, Status440PostNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         if(postRepository.existsById(postId)) {
-            if (userIsPostAuthor(postId, jwtUser) | userService.getAuthenticatedUser(jwtUser).getRole().equals(Role.ADMIN)) {
+            if (userIsPostAuthor(postId, userPrincipal) | userService.getAuthenticatedUser(userPrincipal).getRole().equals(Role.ADMIN)) {
                 Optional<Post> post = postRepository.findById(postId);
                 for (String picturePath : post.get().getPicturePath()){
                     File picture = new File(picturePath);
@@ -103,11 +103,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Post updatePost(PostDTO postDTO, String postId, JwtUser jwtUser)throws Status435UserNotPostAuthorException, Status440PostNotFoundException, IOException, Status443FileIsNullException, Status444UserIsNull{
+    public Post updatePost(PostDTO postDTO, String postId, UserPrincipal userPrincipal) throws Status435UserNotPostAuthorException, Status440PostNotFoundException, IOException, Status443FileIsNullException, Status444UserIsNull, Status430UserNotFoundException {
         if (!postRepository.existsById(postId)) {
             throw new Status440PostNotFoundException(postId);
         } else {
-            if (!userIsPostAuthor(postId, jwtUser)) {
+            if (!userIsPostAuthor(postId, userPrincipal)) {
                 throw new Status435UserNotPostAuthorException(postId);
             }else {
                 Post post = postRepository.findById(postId).orElseThrow();
@@ -119,7 +119,7 @@ public class PostServiceImpl implements PostService {
                     }
                     post.getPicturePath().clear();
                     for (MultipartFile picture : postDTO.getPictures()) {
-                        post.getPicturePath().add(pictureService.savePicture(picture, pictureService.createPostPicturePath(jwtUser)));
+                        post.getPicturePath().add(pictureService.savePicture(picture, pictureService.createPostPicturePath(userPrincipal)));
                     }
                 }
 
@@ -132,16 +132,16 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public boolean userIsPostAuthor(String postId, JwtUser jwtUser) throws Status444UserIsNull, Status440PostNotFoundException {
-        String userId = userService.getAuthenticatedUser(jwtUser).getId();
+    public boolean userIsPostAuthor(String postId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status440PostNotFoundException, Status430UserNotFoundException {
+        String userId = userService.getAuthenticatedUser(userPrincipal).getId();
         String authorId = postRepository.findById(postId).orElseThrow(() -> new Status440PostNotFoundException(postId)).getAuthor().getId();
         return authorId.equals(userId);
     }
 
 
     @Override
-    public List<Post> getAllByAuthenticated(JwtUser jwtUser) throws Status444UserIsNull {
-        return postRepository.findAllByAuthor(jwtUser.getUser());
+    public List<Post> getAllByAuthenticated(UserPrincipal userPrincipal) throws Status444UserIsNull {
+        return postRepository.findAllByAuthorId(userPrincipal.getId());
     }
     @Override
     public List<Comment> getCommentsByPostId(String postId) throws Status440PostNotFoundException {
@@ -155,7 +155,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<Post> getAllByUsername(String username) throws Status444UserIsNull {
-        return postRepository.findAllByAuthor(userService.getByUserName(username));
+        return postRepository.findAllByAuthor(userService.getByUsername(username));
     }
 
 

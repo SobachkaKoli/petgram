@@ -15,5 +15,3 @@ public class UserResponse {
     private List<User> friends;
 
 }
-//Доробити Юзер респонс
-// список друзів( підписки і підписники) і їх кількість

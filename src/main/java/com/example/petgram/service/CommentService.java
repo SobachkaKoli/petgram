@@ -1,21 +1,18 @@
 package com.example.petgram.service;
 
 import com.example.petgram.DTO.CommentDTO;
-import com.example.petgram.Exception.Status436UserNotCommentAuthorException;
-import com.example.petgram.Exception.Status439CommentNotFoundException;
-import com.example.petgram.Exception.Status440PostNotFoundException;
-import com.example.petgram.Exception.Status444UserIsNull;
+import com.example.petgram.Exception.*;
 import com.example.petgram.model.Comment;
-import com.example.petgram.security.JwtUser;
+import com.example.petgram.security.jwt.UserPrincipal;
 
 public interface CommentService {
 
 
-    Comment addComment(CommentDTO commentDTO, String postId, JwtUser jwtUser) throws Status440PostNotFoundException, Status444UserIsNull;
+    Comment addComment(CommentDTO commentDTO, String postId, UserPrincipal userPrincipal) throws Status440PostNotFoundException, Status444UserIsNull, Status430UserNotFoundException;
 
-    void deleteComment(String commentId, JwtUser jwtUser) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull;
+    void deleteComment(String commentId, UserPrincipal userPrincipal) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull, Status430UserNotFoundException;
 
-    boolean userIsCommentAuthor(String commentId, JwtUser jwtUser) throws Status444UserIsNull;
+    boolean userIsCommentAuthor(String commentId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException;
     Comment save(Comment comment);
     boolean existsById(String id);
     void deleteAllByPostId(String postId);
