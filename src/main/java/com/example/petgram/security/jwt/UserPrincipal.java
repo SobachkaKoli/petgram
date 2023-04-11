@@ -23,7 +23,6 @@ public class UserPrincipal implements UserDetails{
     private final String username;
     private final String password;
     private final Role role;
-    private final AuthProvider provider;
     private final Collection<? extends GrantedAuthority> authorities;
 
 
@@ -34,9 +33,6 @@ public class UserPrincipal implements UserDetails{
         log.info(String.valueOf(getRole()));
         return List.of(getRole());
     }
-
-//          user.get().getRoles().forEach(role -> listRoles.add(role.name()));
-//        grantedAuthorityList = listRoles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
     public String  getId(){ return id;}
 

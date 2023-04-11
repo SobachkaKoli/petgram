@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-
     private final AdminService adminService;
 
     @Autowired
@@ -19,12 +18,10 @@ public class AdminController {
 
         this.adminService = adminService;
     }
-
     @PatchMapping("/ban-user/{userId}")
     public User banUser(@PathVariable String userId ) throws Status430UserNotFoundException, Status444UserIsNull {
         return adminService.banUserById(userId);
     }
-
     @PatchMapping("/unban-user/{userId}")
     public User unBanUser(@PathVariable String userId ) throws Status430UserNotFoundException, Status444UserIsNull {
         return adminService.unBanUserById(userId);

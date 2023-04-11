@@ -5,7 +5,6 @@ import com.example.petgram.DTO.UserDto;
 import com.example.petgram.Exception.*;
 import com.example.petgram.model.User;
 import com.example.petgram.notifications.Notification;
-import com.example.petgram.security.CurrentUser;
 import com.example.petgram.security.jwt.UserPrincipal;
 import com.example.petgram.service.AvatarService;
 import com.example.petgram.service.FriendShipService;
@@ -39,7 +38,7 @@ public class UserController {
 
     @GetMapping("/user/me")
     @PreAuthorize("hasRole('USER')")
-    public User getCurrentUser(@CurrentUser UserPrincipal userPrincipal) throws Status430UserNotFoundException {
+    public User getCurrentUser(UserPrincipal userPrincipal) throws Status430UserNotFoundException {
         return userService.findById(userPrincipal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userPrincipal.getId()));
     }
@@ -55,11 +54,11 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getAll(){return userService.getUsers();}
 
-    @PostMapping("/registration")
-    public User saveUser(@RequestBody UserDto userDTO) throws Status434UserNicknameNotUniqueException {
-        return userService.registerUser(userDTO);
-
-    }
+//    @PostMapping("/registration")
+//    public User saveUser(@RequestBody UserDto userDTO) throws Status434UsernameNotUniqueException {
+//        return userService.registerUser(userDTO);
+//
+//    }
 
     @PostMapping("/set-avatar")
     public String uploadAvatar(@RequestParam("file") MultipartFile file,
@@ -69,7 +68,7 @@ public class UserController {
 
     @GetMapping("/get-user-by-username/{username}")
     public User getUserByUsername(@PathVariable String username) throws Status444UserIsNull {
-        return userService.getByUsername(username);
+        return userService.findByUsername(username);
     }
 
 

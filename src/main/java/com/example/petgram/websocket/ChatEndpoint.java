@@ -43,7 +43,7 @@ public class ChatEndpoint {
     public void onOpen(Session session, @PathParam("chatId") Long chatId) throws Status444UserIsNull {
 
         this.session = session;
-        this.currentUser = userService.getByUsername(session.getUserPrincipal().getName());
+        this.currentUser = userService.findByUsername(session.getUserPrincipal().getName());
         this.currentChatRoom = chatRoomService.getChatRoomByChatIdAndSender(chatId,currentUser);
         users.put(session.getId(), chatId);
         chatEndpoints.add(this);
@@ -62,7 +62,7 @@ public class ChatEndpoint {
 
         for (User user : recipients){
             Message message = new Message();
-            message.setFrom(userService.getByUsername(session.getUserPrincipal().getName()));
+            message.setFrom(userService.findByUsername(session.getUserPrincipal().getName()));
             message.setTo(user);
             message.setContent(content);
             message.setChatId(Long.valueOf(chatId));

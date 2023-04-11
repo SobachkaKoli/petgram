@@ -3,7 +3,7 @@ package com.example.petgram.Exception;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ErrorCodeException extends Exception {
+public class ErrorCodeException extends RuntimeException {
     private static final String GENERAL_EXCEPTION_GUID = "ErrorCodeException";
     private int code = Integer.MAX_VALUE;
     private Object context;

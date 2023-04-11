@@ -4,10 +4,7 @@ import com.example.petgram.Exception.Status430UserNotFoundException;
 import com.example.petgram.Exception.Status444UserIsNull;
 import com.example.petgram.model.Role;
 import com.example.petgram.model.User;
-import com.example.petgram.repository.UserRepository;
 import com.example.petgram.service.AdminService;
-import com.example.petgram.service.CommentService;
-import com.example.petgram.service.PostService;
 import com.example.petgram.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,12 +14,11 @@ import org.springframework.stereotype.Service;
 public class AdminServiceImpl implements AdminService {
 
     private final UserService userService;
-    private final UserRepository userRepository;
 
 
-    public AdminServiceImpl(UserService userService, PostService postService, CommentService commentService, UserRepository userRepository) {
+    public AdminServiceImpl(UserService userService) {
         this.userService = userService;
-        this.userRepository = userRepository;
+
     }
 
 
@@ -34,10 +30,10 @@ public class AdminServiceImpl implements AdminService {
             log.info("User {} not found", username);
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUsername(username);
+            User user = userService.findByUsername(username);
             user.setRole(Role.BANNED_USER);
             log.info("User {} was baned", username);
-           return userRepository.save(user);
+           return userService.save(user);
         }
     }
 
@@ -47,7 +43,7 @@ public class AdminServiceImpl implements AdminService {
             log.info("User {} not found", username);
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUsername(username);
+            User user = userService.findByUsername(username);
             user.setRole(Role.USER);
             log.info("User {} was unbanned", username);
             return userService.save(user);

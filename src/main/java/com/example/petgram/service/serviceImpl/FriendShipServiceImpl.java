@@ -43,7 +43,7 @@ public class FriendShipServiceImpl implements FriendShipService{
                 follower.setFollowing(friendShipRepository.countAllByFollower(follower));
                 userRepository.save(follower);
 
-                User following = userService.getByUsername(followingUserName);
+                User following = userService.findByUsername(followingUserName);
                 log.info("Following {}", following);
                 following.setFollowers(friendShipRepository.countAllByFollowing(following));
                 userRepository.save(following);
@@ -54,7 +54,7 @@ public class FriendShipServiceImpl implements FriendShipService{
     public void followUp(String followingUsername, UserPrincipal userPrincipal) throws Status430UserNotFoundException, Status432SelfFollowingException, Status433FriendShipAlreadyExistsException, Status444UserIsNull {
 
         if (friendShipRepository.existsByFollowerAndFollowing(
-                userService.getAuthenticatedUser(userPrincipal),userService.getByUsername(followingUsername))){
+                userService.getAuthenticatedUser(userPrincipal),userService.findByUsername(followingUsername))){
             throw new Status433FriendShipAlreadyExistsException(followingUsername);
         }else {
             if(!userService.existsByUsername(followingUsername)){
@@ -64,13 +64,13 @@ public class FriendShipServiceImpl implements FriendShipService{
             }else {
                 FriendShip friendShip = FriendShip
                         .builder()
-                        .following(userService.getByUsername(followingUsername))
+                        .following(userService.findByUsername(followingUsername))
                         .follower(userService.getAuthenticatedUser(userPrincipal))
                         .build();
                 friendShipRepository.save(friendShip);
                 countFollowersAndFollowing(followingUsername, userPrincipal);
                 notificationService.sendNotification(
-                        userPrincipal,followingUsername,userService.getByUsername(followingUsername).getUsername() + " now following you",userService.getAuthenticatedUser(userPrincipal).getId(), ContentType.FOLLOWER);
+                        userPrincipal,followingUsername,userService.findByUsername(followingUsername).getUsername() + " now following you",userService.getAuthenticatedUser(userPrincipal).getId(), ContentType.FOLLOWER);
             }
         }
     }
@@ -80,12 +80,12 @@ public class FriendShipServiceImpl implements FriendShipService{
             throw new Status430UserNotFoundException(followingUsername);
         } else {
             if (!friendShipRepository.existsByFollowerAndFollowing(userService.getAuthenticatedUser(userPrincipal),
-                    userService.getByUsername(followingUsername)
+                    userService.findByUsername(followingUsername)
             )) {
-                throw new Status442FriendShipDoesntExistsException(userService.getByUsername(followingUsername).getUsername());
+                throw new Status442FriendShipDoesntExistsException(userService.findByUsername(followingUsername).getUsername());
             } else {
                 friendShipRepository.deleteFriendShipByFollowerAndFollowing(userService.getAuthenticatedUser(userPrincipal),
-                        userService.getByUsername(followingUsername));
+                        userService.findByUsername(followingUsername));
                 countFollowersAndFollowing(followingUsername, userPrincipal);
             }
         }
@@ -96,7 +96,7 @@ public class FriendShipServiceImpl implements FriendShipService{
         if(!userService.existsByUsername(username)){
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUsername(username);
+            User user = userService.findByUsername(username);
             if (!friendShipRepository.existsByFollowing(user)) {
                 throw new Status442FriendShipDoesntExistsException(user.getUsername());
             }else {
@@ -118,7 +118,7 @@ public class FriendShipServiceImpl implements FriendShipService{
         if (!userService.existsByUsername(username)){
             throw new Status430UserNotFoundException(username);
         }else {
-            User user = userService.getByUsername(username);
+            User user = userService.findByUsername(username);
             if(!friendShipRepository.existsByFollower(user)){
                 throw new Status442FriendShipDoesntExistsException(user.getUsername());
             }
@@ -130,9 +130,9 @@ public class FriendShipServiceImpl implements FriendShipService{
     @Override
     public void deleteFollower(String followingUsername, UserPrincipal userPrincipal) throws Status430UserNotFoundException, Status444UserIsNull {
         if (friendShipRepository.existsByFollowerAndFollowing(
-                userService.getByUsername(followingUsername),userService.getAuthenticatedUser(userPrincipal))){
+                userService.findByUsername(followingUsername),userService.getAuthenticatedUser(userPrincipal))){
             friendShipRepository.deleteFriendShipByFollowerAndFollowing(
-                    userService.getByUsername(followingUsername),userService.getAuthenticatedUser(userPrincipal));
+                    userService.findByUsername(followingUsername),userService.getAuthenticatedUser(userPrincipal));
            countFollowersAndFollowing(followingUsername, userPrincipal);
         }else {
             throw new Status430UserNotFoundException(followingUsername);

@@ -29,7 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .message(message)
                 .documentId(documentId)
                 .contentType(contentType)
-                .recipient(userService.getByUsername(recipientUsername))
+                .recipient(userService.findByUsername(recipientUsername))
                 .build();
         notificationRepository.save(notification);
     }

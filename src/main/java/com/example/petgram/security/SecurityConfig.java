@@ -1,124 +1,110 @@
 package com.example.petgram.security;
 
-import com.example.petgram.model.Role;
 
-import com.example.petgram.security.jwt.JwtConfigurer;
-import com.example.petgram.security.jwt.JwtTokenProvider;
-import com.example.petgram.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
-
+import com.example.petgram.Exception.Status434UsernameNotUniqueException;
 import com.example.petgram.repository.UserRepository;
-import com.example.petgram.security.RestAuthenticationEntryPoint;
+import com.example.petgram.security.filter.CustomAuthenticationFilter;
+import com.example.petgram.security.filter.CustomAuthorizationFilter;
+
+
 import com.example.petgram.security.jwt.JwtUserDetailsService;
-import com.example.petgram.security.RestAuthenticationEntryPoint;
-import com.example.petgram.security.oauth2.CustomOAuth2UserService;
-import com.example.petgram.security.oauth2.OAuth2AuthenticationFailureHandler;
-import com.example.petgram.security.oauth2.OAuth2AuthenticationSuccessHandler;
 
+
+import com.example.petgram.security.oauth.CustomOAuth2User;
+import com.example.petgram.security.oauth.OAuthTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.security.authentication.AuthenticationManager;
+
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private final JwtUserDetailsService jwtUserDetailsService;
-    @Bean
-    public CustomOAuth2UserService customOAuth2UserService(){
-        return new CustomOAuth2UserService();
-    }
-    @Autowired
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-    @Autowired
-    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
-    @Autowired
-    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private AuthenticationEntryPoint authenticationEntryPoint;
+
+    private final OAuthTokenProvider oAuthTokenProvider;
+
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
-        return authenticationConfiguration.getAuthenticationManager();
+    public UserDetailsService userDetailsService(){
+        return new JwtUserDetailsService((userRepository));
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public DaoAuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(myPasswordEncoder.passwordEncoder());
+        return  authProvider;
     }
+    @Autowired
+   public MyPasswordEncoder myPasswordEncoder;
+
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
 
 
+        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.userDetailsService(userDetailsService()).passwordEncoder(myPasswordEncoder.passwordEncoder());
+
+        AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
+
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager);
+        customAuthenticationFilter.setFilterProcessesUrl("/api/login");
+
+
+        http.csrf().disable();
+        http.sessionManagement().sessionCreationPolicy(STATELESS);
         http
-                .httpBasic().disable()
-                .csrf().disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint)
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests()
-                .anyRequest().permitAll()
-//                .requestMatchers("/api/login/*", "/api/user/registration").permitAll()
-//                .requestMatchers("/api/auth/*", "/api/oauth2/*").permitAll()
-//                .requestMatchers("/auth/*", "/oauth2/*")
-//                .permitAll()
-//                .requestMatchers("/api/user/*").hasAuthority(Role.USER.getAuthority())
-//                .requestMatchers("/api/admin/*").hasAuthority(Role.ADMIN.getAuthority())
+                .cors().and()
+                .authorizeHttpRequests().anyRequest().permitAll()
+//                .requestMatchers("/api/user/oauth").permitAll()
+//                .requestMatchers("/api/login/**", "/api/user/registration","/").permitAll()
+//                .requestMatchers("/oauth/**","/oauth2/**").permitAll()
+//                .requestMatchers("/api/user/**").hasAuthority(Role.USER.getAuthority())
+//                .requestMatchers("/api/admin/**").hasAuthority(Role.ADMIN.getAuthority())
 //                .anyRequest().authenticated()
                 .and()
                 .oauth2Login()
-                .authorizationEndpoint()
-                .baseUri("/oauth2/authorize")
-                .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)
-                .and()
-                .redirectionEndpoint()
-                .baseUri("/oauth2/callback/*")
-                .and()
-                .userInfoEndpoint()
-                .userService(customOAuth2UserService())
-                .and()
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-                .failureHandler(oAuth2AuthenticationFailureHandler)
-                .and()
-                .apply(new JwtConfigurer(jwtTokenProvider));
+                .successHandler((request, response, authentication) -> {
 
-//        http.addFilterAfter(customAuthenticationFilter);
-//        http.addFilterBefore(new CustomAuthorizationFilter(),
-//                UsernamePasswordAuthenticationFilter.class).authenticationManager(authenticationManager);
+                    response.setContentType("application/json");
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
+                    Map<String, String> tokenMap = new HashMap<>();
+                    tokenMap.put("token", oAuthTokenProvider.createToken(oauthUser));
+                    response.getOutputStream().print(objectMapper.writeValueAsString(tokenMap));
+
+                });
+
+        http.addFilter(customAuthenticationFilter);
+        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .authenticationManager(authenticationManager);
+
         return http.build();
     }
-
-
-//    @Bean
-//    public JwtDecoder jwtDecoder() {
-//        return NimbusJwtDecoder.withJwkSetUri("https://www.googleapis.com/oauth2/v3/certs").build();
-//    }
-
 }

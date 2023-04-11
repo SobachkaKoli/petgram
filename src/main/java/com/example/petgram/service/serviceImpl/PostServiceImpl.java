@@ -65,7 +65,7 @@ public class PostServiceImpl implements PostService {
         if (userService.existsByUsername(sponsorUsername)){
             return sponsorPostRepository.save(SponsorPost.builder()
                     .post(createPost(postDTO, userPrincipal))
-                    .sponsor(userService.getByUsername(sponsorUsername))
+                    .sponsor(userService.findByUsername(sponsorUsername))
                     .build());
         }else {
             throw new Status430UserNotFoundException(sponsorUsername);
@@ -155,7 +155,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<Post> getAllByUsername(String username) throws Status444UserIsNull {
-        return postRepository.findAllByAuthor(userService.getByUsername(username));
+        return postRepository.findAllByAuthor(userService.findByUsername(username));
     }
 
 

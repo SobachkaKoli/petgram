@@ -23,7 +23,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         ArrayList<User> members = new ArrayList<>();
         members.add(userService.getAuthenticatedUser(userPrincipal));
         for (String username : usernames) {
-            members.add(userService.getByUsername(username));
+            members.add(userService.findByUsername(username));
         }
 
         for (User user : members) {
