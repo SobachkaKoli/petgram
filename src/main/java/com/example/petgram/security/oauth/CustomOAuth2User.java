@@ -1,7 +1,7 @@
 package com.example.petgram.security.oauth;
 
 
-import com.example.petgram.model.AuthProvider;
+
 import com.example.petgram.model.Role;
 
 import lombok.Data;
@@ -46,6 +46,8 @@ public class CustomOAuth2User implements OAuth2User {
     public String getEmails(){
         return oauth2User.getAttribute("emails");
     }
+
+    public String getPicture(){return oauth2User.getAttribute("picture");}
 
     public String getLogin(){ return oauth2User.getAttribute("login");}
 

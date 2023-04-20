@@ -44,7 +44,6 @@ public class UserController {
     }
 
 
-
     @GetMapping("/hello")
     @PreAuthorize("hasAuthority('SCOPE_profile')")
     public String hello() {
@@ -52,17 +51,14 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<User> getAll(){return userService.getUsers();}
+    public List<User> getAll() {
+        return userService.getUsers();
+    }
 
-//    @PostMapping("/registration")
-//    public User saveUser(@RequestBody UserDto userDTO) throws Status434UsernameNotUniqueException {
-//        return userService.registerUser(userDTO);
-//
-//    }
 
     @PostMapping("/set-avatar")
     public String uploadAvatar(@RequestParam("file") MultipartFile file,
-                                            UserPrincipal userPrincipal) throws IOException, Status443FileIsNullException, Status444UserIsNull, Status430UserNotFoundException {
+                               UserPrincipal userPrincipal) throws IOException, Status443FileIsNullException, Status444UserIsNull, Status430UserNotFoundException {
         return avatarService.setAvatar(file, userPrincipal);
     }
 
@@ -79,7 +75,7 @@ public class UserController {
 
     @GetMapping("/get-notifications")
     public List<Notification> getMyNotifications(UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
-        return  userService.getMyNotifications(userPrincipal);
+        return userService.getMyNotifications(userPrincipal);
     }
 
     @DeleteMapping("/user/unfollow-up/{followingUsername}")
@@ -109,12 +105,8 @@ public class UserController {
 
     @GetMapping("/token/refresh")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-       userService.refreshToken(request,response);
+        userService.refreshToken(request, response);
     }
-
-
-
-
 
 
 }

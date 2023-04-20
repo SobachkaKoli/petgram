@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User signUp(UserDto userDTO) throws Status434UsernameNotUniqueException {
-        if (Boolean.TRUE.equals(userRepository.existsByUsername(userDTO.getUsername()))) {
+        if ((userRepository.existsByUsername(userDTO.getUsername())) ||  (userRepository.existsByEmail(userDTO.getEmail()))) {
             throw new Status434UsernameNotUniqueException();
         }
 

@@ -40,20 +40,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final EmailServiceImpl emailService;
+
     private final NotificationRepository notificationRepository;
 
-    @Value("${upload.path}")
-    private String uploadPath;
-
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, EmailServiceImpl emailService, NotificationRepository notificationRepository) {
+    public UserServiceImpl(UserRepository userRepository, NotificationRepository notificationRepository) {
 
         this.userRepository = userRepository;
-        this.emailService = emailService;
         this.notificationRepository = notificationRepository;
     }
-
 
 
     @Override
@@ -88,7 +83,6 @@ public class UserServiceImpl implements UserService {
     public List<Notification> getMyNotifications(UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
         return notificationRepository.findAllByRecipient(getAuthenticatedUser(userPrincipal));
     }
-
 
 
     @Override

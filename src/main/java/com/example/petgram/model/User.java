@@ -23,6 +23,6 @@ public class User {
     private Role role;
     private int following;
     private int followers;
-    private AuthProvider provider;
-    private String providerId;
+
+
 }

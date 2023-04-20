@@ -4,6 +4,6 @@ public class Status434UsernameNotUniqueException extends ErrorCodeException{
     public static final int CODE = 434;
 
     public Status434UsernameNotUniqueException() {
-        super(CODE,"This nickname is already taken","434");
+        super(CODE,"This nickname or email already taken","434");
     }
 }

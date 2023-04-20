@@ -9,24 +9,4 @@ spring:
             scope:
               - email
               - profile
-          github:
-            clientId: 05f92d83083cce17fa8f
-            clientSecret: ce70b032527861ce275f327f8f3afd681b6d4477
-            scope:
-              - user:email
-              - read:user
 
-#app:
-#  auth:
-#    tokenSecret: 04ca023b39512e46d0c2cf4b48d5aac61d34302994c87ed4eff225dcf3b0a218739f3897051a057f9b846a69ea2927a587044164b7bae5e1306219d50b588cb1
-#    tokenExpirationMsec: 86400000
-#  cors:
-#    allowedOrigins:
-#    - http://localhost:8080
-#    - http://localhost:3000
-#  oauth2:
-#    authorizedRedirectUris:
-#      - http://localhost:8080/oauth2/authorization/google
-#      - http://localhost:8080/oauth2/redirect
-#      - http://localhost:3000/oauth2/redirect
-#      - http://localhost:8080/oauth2/callback/google

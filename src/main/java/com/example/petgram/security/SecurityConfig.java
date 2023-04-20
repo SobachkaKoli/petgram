@@ -2,6 +2,7 @@ package com.example.petgram.security;
 
 
 import com.example.petgram.Exception.Status434UsernameNotUniqueException;
+import com.example.petgram.model.Role;
 import com.example.petgram.repository.UserRepository;
 import com.example.petgram.security.filter.CustomAuthenticationFilter;
 import com.example.petgram.security.filter.CustomAuthorizationFilter;
@@ -46,26 +47,24 @@ public class SecurityConfig {
 
 
     private final OAuthTokenProvider oAuthTokenProvider;
-
+    @Autowired
+    public MyPasswordEncoder myPasswordEncoder;
 
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService() {
         return new JwtUserDetailsService((userRepository));
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(){
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService());
         authProvider.setPasswordEncoder(myPasswordEncoder.passwordEncoder());
-        return  authProvider;
+        return authProvider;
     }
-    @Autowired
-   public MyPasswordEncoder myPasswordEncoder;
-
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
@@ -81,13 +80,17 @@ public class SecurityConfig {
         http.sessionManagement().sessionCreationPolicy(STATELESS);
         http
                 .cors().and()
-                .authorizeHttpRequests().anyRequest().permitAll()
-//                .requestMatchers("/api/user/oauth").permitAll()
-//                .requestMatchers("/api/login/**", "/api/user/registration","/").permitAll()
-//                .requestMatchers("/oauth/**","/oauth2/**").permitAll()
-//                .requestMatchers("/api/user/**").hasAuthority(Role.USER.getAuthority())
-//                .requestMatchers("/api/admin/**").hasAuthority(Role.ADMIN.getAuthority())
-//                .anyRequest().authenticated()
+                .authorizeHttpRequests()
+                .requestMatchers("/", "/error", "/webjars/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/user/oauth").permitAll()
+                .requestMatchers("/api/login/**", "/api/user/registration", "/").permitAll()
+                .requestMatchers("/oauth/**", "/oauth2/**").permitAll()
+                .requestMatchers("/api/user/**").hasAuthority(Role.USER.getAuthority())
+                .requestMatchers("/api/admin/**").hasAuthority(Role.ADMIN.getAuthority())
+                .anyRequest().authenticated()
+                .and()
+                .logout().logoutSuccessUrl("/").permitAll()
                 .and()
                 .oauth2Login()
                 .successHandler((request, response, authentication) -> {

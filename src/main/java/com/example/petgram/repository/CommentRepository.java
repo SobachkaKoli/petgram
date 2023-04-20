@@ -10,11 +10,13 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends MongoRepository<Comment,String> {
 
-    List<Comment> findAllByAuthor(User author);
+
     Comment getCommentById(String id);
+
+    void deleteCommentById(String id);
 
     void deleteAllByPostId(String postId);
 
-   List<Comment> getCommentsByPostId(String postId);
+
 
 }

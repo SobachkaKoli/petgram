@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface NotificationRepository extends MongoRepository<Notification,String > {
+public interface NotificationRepository extends MongoRepository<Notification, String> {
     List<Notification> findAllByRecipient(User recipient);
 }

@@ -1,6 +1,6 @@
 package com.example.petgram.security.jwt;
 
-import com.example.petgram.model.AuthProvider;
+
 import com.example.petgram.model.Role;
 import com.example.petgram.model.User;
 import lombok.Data;

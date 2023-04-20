@@ -16,9 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-//    User registerUser(UserDto userDTO) throws Status434UsernameNotUniqueException;
+
 
     User findByUsername(String username) throws Status444UserIsNull;
+
     User getAuthenticatedUser(UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException;
 
     User deleteMyAccount(UserPrincipal userPrincipal) throws Exception;
@@ -28,13 +29,16 @@ public interface UserService {
     User save(User user);
 
     Optional<User> findById(String id);
+
     Optional<User> findByEmail(String email);
+
     List<User> getUsers();
 
-    void  refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException;
+    void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException;
 
 
     boolean existsByUsername(String username);
+
     boolean existByEmail(String email);
 
     DecodedJWT decodedJWT(String token);
