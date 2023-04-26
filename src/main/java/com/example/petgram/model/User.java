@@ -21,6 +21,7 @@ public class User {
     private String password;
     private String avatar;
     private Role role;
+    //  TODO (Bogdan O.) 26/4/23: refer this fields to existing docs
     private int following;
     private int followers;
 

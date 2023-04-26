@@ -13,6 +13,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    //  TODO (Bogdan O.) 26/4/23: remove constructor or use @Autowired right on it
     @Autowired
     public AdminController(AdminService adminService) {
 

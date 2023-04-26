@@ -83,6 +83,7 @@ public class CommentServiceImpl implements CommentService {
     public boolean userIsCommentAuthor(String commentId, UserPrincipal userPrincipal) throws Status444UserIsNull, Status430UserNotFoundException {
         String userId = userService.getAuthenticatedUser(userPrincipal).getId();
         log.info("User id {} ", userId);
+        //  TODO (Bogdan O.) 26/4/23: use custom Exceptions instead of .get()
         String authorId = commentRepository.findById(commentId).get().getAuthor().getId();
         log.info("Author id {}", authorId);
         return authorId.equals(userId);

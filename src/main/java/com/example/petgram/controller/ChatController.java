@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+//  TODO (Bogdan O.) 26/4/23: rename endpoint
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class ChatController {
@@ -18,7 +19,7 @@ public class ChatController {
     private final ChatRoomService chatRoomService;
 
 
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PostMapping("/create-chat/")
     public Long createChat(@RequestParam List<String> usernames, UserPrincipal userPrincipal) throws Status444UserIsNull, Status446ChatRoomAlreadyExsists, Status430UserNotFoundException {
      return chatRoomService.createChatRoom(userPrincipal,usernames);

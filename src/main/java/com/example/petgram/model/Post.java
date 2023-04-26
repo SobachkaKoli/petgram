@@ -27,6 +27,7 @@ public class Post {
     @DBRef
     private User author;
     private String text;
+    //  TODO (Bogdan O.) 26/4/23: remove counter fields
     private int countLikes;
     private int countComment;
     private ContentType contentType;
@@ -34,6 +35,7 @@ public class Post {
     @CreatedDate
     private Date pubDate;
     @JsonIgnore
+    //  TODO (Bogdan O.) 26/4/23: check this
     //TODO почитати лейзі і ігр
     @DBRef(lazy = true)
     private List<Comment> comments;

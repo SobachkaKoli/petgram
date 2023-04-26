@@ -52,6 +52,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         //security_user
         UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
         Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
+        //  TODO (Bogdan O.) 26/4/23: underscoring is prohibited in object names
         String access_token = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 10000))

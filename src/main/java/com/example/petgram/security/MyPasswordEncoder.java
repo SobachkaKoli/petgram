@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MyPasswordEncoder {
+    //  TODO (Bogdan O.) 26/4/23: beans like below can be moved to SecurityConfig
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();

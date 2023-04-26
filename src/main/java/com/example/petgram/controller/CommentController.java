@@ -18,17 +18,19 @@ public class CommentController {
         this.commentService = commentService;
         this.likeService = likeService;
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @DeleteMapping("/comment/delete/{commentId}")
     public void deleteComment(@PathVariable String commentId, UserPrincipal userPrincipal) throws Status436UserNotCommentAuthorException, Status439CommentNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         commentService.deleteComment(commentId, userPrincipal);
     }
-    
+
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PostMapping("/comment/set-like/{commentId}")
     public void setLikeToComment(@PathVariable String commentId, UserPrincipal userPrincipal) throws Status437LikeAlreadyExistsException, Status439CommentNotFoundException, Status444UserIsNull, Status440PostNotFoundException, Status430UserNotFoundException {
         likeService.likeComment(commentId, userPrincipal);
     }
 
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @DeleteMapping("/comment/unset-like/{commentId}")
     public void unsetLikeToComment(@PathVariable String commentId, UserPrincipal userPrincipal) throws Status438LikeNotFoundException, Status439CommentNotFoundException, Status444UserIsNull, Status440PostNotFoundException, Status430UserNotFoundException {
         likeService.unLikeComment(commentId, userPrincipal);

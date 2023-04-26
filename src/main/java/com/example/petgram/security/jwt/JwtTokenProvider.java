@@ -17,6 +17,7 @@ import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
+//  TODO (Bogdan O.) 26/4/23: is this class using somewhere?
 public class JwtTokenProvider {
     @Value("${secret.key}")
     private String secret;

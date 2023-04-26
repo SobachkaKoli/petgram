@@ -30,50 +30,50 @@ public class PostController {
     }
 
 
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @GetMapping("/get-my-posts")
     private List<Post> getPostsAuthenticatedUser(UserPrincipal userPrincipal) throws Exception {
         return postService.getAllByAuthenticated(userPrincipal);}
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @GetMapping("/get-user-posts/{username}")
     private List<Post> getPostsUser(@PathVariable String username) throws Status444UserIsNull {
         return postService.getAllByUsername(username);}
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @GetMapping("/get-post-comments/{postId}")
     private List<Comment> getPostComments(@PathVariable String postId) throws Status440PostNotFoundException {
         return postService.getCommentsByPostId(postId);
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PostMapping("/create-post")
     private Post createPost(@ModelAttribute PostDTO postDTO, UserPrincipal userPrincipal) throws IOException, Status443FileIsNullException, Status444UserIsNull, Status430UserNotFoundException {
         return postService.createPost(postDTO, userPrincipal);
     }
 
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PostMapping("/create-sponsor-post/{sponsorName}")
     private SponsorPost createSponsorPost(@ModelAttribute PostDTO postDTO,
                                                           UserPrincipal userPrincipal,
                                                           @PathVariable String sponsorName) throws IOException, Status443FileIsNullException, Status430UserNotFoundException, Status444UserIsNull {
         return postService.createSponsorPost(postDTO,sponsorName, userPrincipal);
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PatchMapping("/update-post/{postId}")
     public Post updatePost(@ModelAttribute PostDTO postDTO, @PathVariable String postId, UserPrincipal userPrincipal)
             throws Status435UserNotPostAuthorException, Status440PostNotFoundException, IOException, Status443FileIsNullException, Status444UserIsNull, Status445PictureIsNull, Status430UserNotFoundException {
         return postService.updatePost(postDTO,postId, userPrincipal);
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PostMapping("/post/like/{postId}")
     private void setLikeToPost(@PathVariable String postId, UserPrincipal userPrincipal)
             throws Status437LikeAlreadyExistsException, Status440PostNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         likeService.likePost(postId, userPrincipal);
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @DeleteMapping("/post/unlike/{postId}")
     public void unsetLikeToPost(@PathVariable String postId, UserPrincipal userPrincipal) throws Status438LikeNotFoundException, Status440PostNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         likeService.unLikePost(postId, userPrincipal);
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @PostMapping("/post/addComment/{postId}")
     public Comment addComment(@RequestBody CommentDTO commentDTO,
                                               @PathVariable String postId,
@@ -81,7 +81,7 @@ public class PostController {
         return commentService.addComment(commentDTO,postId, userPrincipal);
 
     }
-
+    //  TODO (Bogdan O.) 26/4/23: use proper CRUD namings
     @DeleteMapping("/post/delete/{id}")
     private void deletePost(@PathVariable String id, UserPrincipal userPrincipal) throws Status435UserNotPostAuthorException, Status440PostNotFoundException, Status444UserIsNull, Status430UserNotFoundException {
         postService.deleteById(id, userPrincipal);

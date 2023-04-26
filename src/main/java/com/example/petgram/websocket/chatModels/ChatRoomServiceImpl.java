@@ -25,7 +25,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         for (String username : usernames) {
             members.add(userService.findByUsername(username));
         }
-
+        //  TODO (Bogdan O.) 26/4/23: how does it work?
         for (User user : members) {
 
             ArrayList<User> recipients = new ArrayList<>(members);
